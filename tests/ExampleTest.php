@@ -1,22 +1,37 @@
 <?php
 
 use Laracasts\TestDummy\Factory;
+use Laracasts\TestDummy\DbTestCase;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
+use App\Repositories\ForumRepository;
 
 
-class ExampleTest extends TestCase
+class ExampleTest extends DbTestCase
 {
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->repository = new ForumRepository;
+    }
+
     /**
      * A basic functional test example.
      *
      * @return void
      */
-    public function it_fetches_the_users_full_name()
+    public function testBasicExample()
     {
-        $user = Factory::build('App\User', ['first_name' => 'John', 'last_name' => 'Doe']);
+      $user = Factory::create('App\User');
 
-        $this->assertEquals('John Doe', $user->fullName());
+      $threads = Factory::times(2)->create('App\Thread', ['user_id' => $user->id]);
+
+      Factory::times(3)->create('App\Thread');
+
+      $threads = $this->repository->getThreadByUserId($user->id);
+
+      $this->assertCount(2, $threads);
     }
 }
